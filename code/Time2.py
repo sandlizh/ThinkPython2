@@ -13,82 +13,60 @@ from __future__ import print_function, division
 
 
 class Time:
-    """Represents the time of day.
-       
-    attributes: hour, minute, second
-    """
-    def __init__(self, hour=0, minute=0, second=0):
-        """Initializes a time object.
+    """Represents the time of day as seconds since midnight."""
 
-        hour: int
-        minute: int
-        second: int or float
-        """
-        self.hour = hour
-        self.minute = minute
-        self.second = second
+    def __init__(self, hour=0, minute=0, second=0):
+        """Initializes a Time object, storing total seconds."""
+        self.seconds = hour * 3600 + minute * 60 + second
 
     def __str__(self):
         """Returns a string representation of the time."""
-        return '%.2d:%.2d:%.2d' % (self.hour, self.minute, self.second)
+        hour, rem = divmod(self.seconds, 3600)
+        minute, second = divmod(rem, 60)
+        return f"{hour:02d}:{minute:02d}:{second:02d}"
 
     def print_time(self):
         """Prints a string representation of the time."""
         print(str(self))
 
     def time_to_int(self):
-        """Computes the number of seconds since midnight."""
-        minutes = self.hour * 60 + self.minute
-        seconds = minutes * 60 + self.second
-        return seconds
+        """Returns seconds since midnight."""
+        return self.seconds
 
     def is_after(self, other):
-        """Returns True if t1 is after t2; false otherwise."""
-        return self.time_to_int() > other.time_to_int()
+        """Returns True if this time is after other."""
+        return self.seconds > other.seconds
 
     def __add__(self, other):
-        """Adds two Time objects or a Time object and a number.
-
-        other: Time object or number of seconds
-        """
+        """Adds a Time object or a number of seconds."""
         if isinstance(other, Time):
             return self.add_time(other)
         else:
             return self.increment(other)
 
     def __radd__(self, other):
-        """Adds two Time objects or a Time object and a number."""
+        """Enables sum() and reversed addition with numbers."""
         return self.__add__(other)
 
     def add_time(self, other):
-        """Adds two time objects."""
+        """Adds two Time objects."""
         assert self.is_valid() and other.is_valid()
-        seconds = self.time_to_int() + other.time_to_int()
-        return int_to_time(seconds)
+        return int_to_time(self.seconds + other.seconds)
 
     def increment(self, seconds):
-        """Returns a new Time that is the sum of this time and seconds."""
-        seconds += self.time_to_int()
-        return int_to_time(seconds)
+        """Returns a new Time object offset by seconds."""
+        return int_to_time(self.seconds + seconds)
 
     def is_valid(self):
-        """Checks whether a Time object satisfies the invariants."""
-        if self.hour < 0 or self.minute < 0 or self.second < 0:
-            return False
-        if self.minute >= 60 or self.second >= 60:
-            return False
-        return True
+        """Checks whether Time object is valid (0 <= seconds < 86400)."""
+        return 0 <= self.seconds < 24 * 3600
 
 
 def int_to_time(seconds):
-    """Makes a new Time object.
-
-    seconds: int seconds since midnight.
-    """
+    """Creates a new Time object from seconds since midnight."""
     minutes, second = divmod(seconds, 60)
     hour, minute = divmod(minutes, 60)
-    time = Time(hour, minute, second)
-    return time
+    return Time(hour, minute, second)
 
 
 def main():
@@ -96,7 +74,6 @@ def main():
     start.print_time()
 
     end = start.increment(1337)
-    #end = start.increment(1337, 460)
     end.print_time()
 
     print('Is end after start?')
